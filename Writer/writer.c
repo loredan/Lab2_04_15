@@ -9,23 +9,20 @@ typedef struct
 
 int main(int argc, char** argv)
 {
-	if(argc%2==1 || argc<2)
+	if(argc!=4)
 	{
-		printf("Incorrect arguments");
+		printf("Incorrect arguments\n");
 		return -1;
 	}
 	FILE* file = fopen(argv[1], "wb");
 	if(!file)
 	{
-		printf("Can't open file");
+		printf("Can't open file\n");
 		return -2;
 	}
-	int i;
-	for(i = 2; i<argc; i+=2)
-	{
-		printf("%s, %s\n", argv[i], argv[i+1]);
-		Involution temp = {atof(argv[i]),atoi(argv[i+1])};
-		fwrite(&temp, 1, sizeof(temp), file);
-	}
+
+	Involution temp = {atof(argv[2]),atoi(argv[3])};
+	fwrite(&temp, 1, sizeof(temp), file);
+
 	fclose(file);
 }

@@ -1,0 +1,16 @@
+#!/bin/bash
+
+if [ -z $(which javac) ];
+then
+	echo "javac not found";
+	exit;
+fi
+
+if [ -z $(which gcc) ];
+then
+	echo "gcc not found";
+	exit;
+fi
+
+javac -d ./production ./Expression/*.java ./TestPackage/*.java
+gcc ./Writer/writer.c -o ./production/writer

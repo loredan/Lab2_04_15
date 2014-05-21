@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [ -z $(which java) ];
+then
+	echo "java not found";
+	exit;
+fi
+
+java -cp ./production TestPackage.Test $1

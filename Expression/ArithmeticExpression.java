@@ -1,9 +1,9 @@
-package MainProgram;
+package Expression;
 
 import java.lang.Throwable;
 import java.util.Vector;
 
-class ArithmeticExpression
+public class ArithmeticExpression
 {
 	private static int ASC0 = 48;
 
@@ -32,7 +32,7 @@ class ArithmeticExpression
 		}
 	}
 
-	public ArithmeticExpression()
+	protected ArithmeticExpression()
 	{
 
 	}
@@ -44,10 +44,18 @@ class ArithmeticExpression
 
 	public ArithmeticExpression(String expression) throws Throwable
 	{
-		System.console().writer().println(expression);
 		if(!check(expression))
 			throw new Throwable("Incorrect expression");
 		parse(expression);
+	}
+
+	public ArithmeticExpression(ArithmeticExpression lExpression, ArithmeticExpression rExpression, int type) throws Throwable
+	{
+		if(type < 0 || type > 4)
+			throw new Throwable("Unknown type");
+		mType = type;
+		mLExpression = lExpression;
+		mRExpression = rExpression;
 	}
 
 	public double calculate() throws Throwable
@@ -63,11 +71,11 @@ class ArithmeticExpression
 			case TYPE_MULTIPLICATION:
 				return mLExpression.calculate() * mRExpression.calculate();
 			case TYPE_DIVISION:
-				if(mRExpression.calculate() == Double.parseDouble("0"))
+				if(Math.abs(mRExpression.calculate()) <= Double.MIN_NORMAL)
 					throw new Throwable("Calculation error: division by zero");
 				return mLExpression.calculate() / mRExpression.calculate();
 		}
-		throw new Throwable("Calculation error: unknown type");
+		return Double.MIN_NORMAL;
 	}
 
 	protected void initConstant(double constant)
@@ -102,7 +110,7 @@ class ArithmeticExpression
 				else
 					level--;
 			else if(symbol=='(')
-				if(prevSymbol>=ASC0 && prevSymbol<ASC0+10 || prevSymbol=='.')
+				if(prevSymbol>=ASC0 && prevSymbol<ASC0+10 || prevSymbol=='.' || prevSymbol==')')
 					return false;
 				else
 					level++;
@@ -116,7 +124,7 @@ class ArithmeticExpression
 				return false;
 			prevSymbol = symbol;
 		}
-		if(symbol=='+' || symbol=='-' || symbol=='*' || symbol=='/' || symbol=='!')
+		if(symbol=='+' || symbol=='-' || symbol=='*' || symbol=='/' || symbol=='.' || level!=0)
 			return false;
 		return true;
 	}
@@ -150,18 +158,17 @@ class ArithmeticExpression
 						type = TYPE_DIVISION;
 						break;
 					default:
-						throw new Throwable("Parse error");
+						throw new Throwable("Unknown type");
 				}
 				operations.add(new Operation(type, level, i));
-				System.console().writer().println(Integer.toString(type) + level + i);
 			}
 		}
 		if(operations.size() == 0)
 		{
 			mType = TYPE_CONSTANT;
-			while(expression.charAt(0) == '(' && expression.charAt(expression.length()-1) == ')')
+			while(expression.length()>0 && expression.charAt(0) == '(' && expression.charAt(expression.length()-1) == ')')
 				expression = expression.substring(1, expression.length()-1);
-			mConstant = Double.parseDouble(expression);
+			mConstant = expression.equals("") ? 0 : Double.parseDouble(expression);
 			return;
 		}
 		int minLevel = operations.firstElement().mLevel;
@@ -175,11 +182,35 @@ class ArithmeticExpression
 				else
 					if((operation.mType==TYPE_MULTIPLICATION || operation.mType==TYPE_DIVISION) && (operations.get(i).mType==TYPE_ADDITION || operations.get(i).mType==TYPE_SUBSTRACTION))
 						operation = operations.get(i);
-		System.console().writer().println(Integer.toString(operation.mType) + operation.mLevel + operation.mPosition);
 		String lExpression = expression.substring(minLevel, operation.mPosition);
 		String rExpression = expression.substring(operation.mPosition+1, expression.length()-minLevel);
 		mLExpression = new ArithmeticExpression(lExpression);
 		mRExpression = new ArithmeticExpression(rExpression);
 		mType = operation.mType;
+	}
+
+	public String getExpression()
+	{
+		String sign;
+		switch(mType)
+		{
+			case TYPE_CONSTANT:
+				return String.valueOf(mConstant);
+			case TYPE_ADDITION:
+				sign = "+";
+				break;
+			case TYPE_SUBSTRACTION:
+				sign = "-";
+				break;
+			case TYPE_MULTIPLICATION:
+				sign = "*";
+				break;
+			case TYPE_DIVISION:
+				sign = "/";
+				break;
+			default:
+				sign = "?";
+		}
+		return sign + " " + mLExpression.getExpression() + " " + mRExpression.getExpression();
 	}
 }
