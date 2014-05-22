@@ -192,9 +192,19 @@ public class Test
 
 	private static ArithmeticExpression generateExpression(String type, String input)
 	{
-		int separator = type.indexOf(":");
+		int separator = type.indexOf("(");
 		String generalType = type.substring(0, separator);
-		String inputType = type.substring(separator+1);
+		int endSeparator = separator;
+		int level = 1;
+		while(level!=1 || type.charAt(separator) != ')')
+		{
+			if(type.charAt(endSeparator)=='(')
+				level++;
+			else if(type.charAt(endSeparator)==')')
+				level--;
+			endSeparator++;
+		}
+		String inputType = type.substring(separator+1, endSeparator);
 
 		if(generalType.equals("ArithmeticExpression"))
 			if(inputType.equals("string"))
